@@ -1320,7 +1320,6 @@ public class BrushCommands {
             @Arg(desc = "The radius to sample for softening", def = "2")
             Expression radius,
             //FAWE end
-            //Seld start
             @Arg(desc = "The radius to sample for softening", def = "UP")
             BetterDirection direction,
             @Arg(desc = "The number of iterations to perform", def = "4")
