@@ -30,6 +30,7 @@ import com.sk89q.worldedit.math.convolution.HeightMap;
 import com.sk89q.worldedit.math.convolution.HeightMapFilter;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.Region;
+import com.sk89q.worldedit.util.BetterDirection;
 import com.sk89q.worldedit.util.Location;
 
 import javax.annotation.Nullable;
@@ -38,25 +39,58 @@ public class SmoothBrush implements Brush {
 
     private final Mask mask;
     private final int iterations;
+    private final BetterDirection direction;
 
     public SmoothBrush(int iterations) {
-        this(iterations, null);
+        this(iterations, null, BetterDirection.UP);
     }
 
-    public SmoothBrush(int iterations, @Nullable Mask mask) {
+    public SmoothBrush(int iterations, @Nullable Mask mask, BetterDirection direction) {
         this.iterations = iterations;
         this.mask = mask;
+        this.direction = direction;
     }
 
     @Override
     public void build(EditSession editSession, BlockVector3 position, Pattern pattern, double size) throws
-            MaxChangedBlocksException {
+            MaxChangedBlocksException
+    {
         Vector3 posDouble = position.toVector3();
-        Location min = new Location(editSession.getWorld(), posDouble.subtract(size, size, size));
-        BlockVector3 max = posDouble.add(size, size + 10, size).toBlockPoint();
-        Region region = new CuboidRegion(editSession.getWorld(), min.toVector().toBlockPoint(), max);
-        HeightMap heightMap = new HeightMap(editSession, region, mask);
+        Location min;
+        BlockVector3 max;
+        Region region;
+        HeightMap heightMap;
         HeightMapFilter filter = new HeightMapFilter(new GaussianKernel(5, 1.0));
+        switch (direction) {
+            case UP -> {
+                min = new Location(editSession.getWorld(), posDouble.subtract(size, size, size));
+                max = posDouble.add(size, size + 10, size).toBlockPoint();
+            }
+            case DOWN -> {
+                min = new Location(editSession.getWorld(), posDouble.subtract(size, size + 10, size));
+                max = posDouble.add(size, size, size).toBlockPoint();
+            }
+            case NORTH -> {
+                min = new Location(editSession.getWorld(), posDouble.subtract(size, size, size + 10));
+                max = posDouble.add(size, size, size).toBlockPoint();
+            }
+            case SOUTH -> {
+                min = new Location(editSession.getWorld(), posDouble.subtract(size, size, size));
+                max = posDouble.add(size, size, size + 10).toBlockPoint();
+            }
+            case WEST -> {
+                min = new Location(editSession.getWorld(), posDouble.subtract(size + 10, size, size));
+                max = posDouble.add(size, size, size).toBlockPoint();
+            }
+            case EAST -> {
+                min = new Location(editSession.getWorld(), posDouble.subtract(size, size, size));
+                max = posDouble.add(size + 10, size, size).toBlockPoint();
+            }
+            default -> throw new IllegalStateException("Unexpected value: " + direction);
+        }
+
+        region = new CuboidRegion(editSession.getWorld(), min.toVector().toBlockPoint(), max);
+        heightMap = new HeightMap(editSession, region, mask);
         heightMap.applyFilter(filter, iterations);
     }
 

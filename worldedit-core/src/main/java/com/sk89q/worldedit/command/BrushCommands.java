@@ -107,6 +107,7 @@ import com.sk89q.worldedit.math.Vector3;
 import com.sk89q.worldedit.regions.factory.CylinderRegionFactory;
 import com.sk89q.worldedit.regions.factory.RegionFactory;
 import com.sk89q.worldedit.session.ClipboardHolder;
+import com.sk89q.worldedit.util.BetterDirection;
 import com.sk89q.worldedit.util.HandSide;
 import com.sk89q.worldedit.util.TreeGenerator;
 import com.sk89q.worldedit.util.formatting.text.Component;
@@ -124,6 +125,7 @@ import org.enginehub.piston.annotation.param.Switch;
 import org.enginehub.piston.inject.InjectedValueAccess;
 import org.enginehub.piston.inject.Key;
 import org.jetbrains.annotations.Range;
+import org.mozilla.javascript.ast.Block;
 
 import java.awt.image.BufferedImage;
 import java.io.DataOutputStream;
@@ -1316,12 +1318,15 @@ public class BrushCommands {
             Player player, LocalSession session,
             //FAWE start - Expression > double
             @Arg(desc = "The radius to sample for softening", def = "2")
-                    Expression radius,
+            Expression radius,
             //FAWE end
+            //Seld start
+            @Arg(desc = "The radius to sample for softening", def = "UP")
+            BetterDirection direction,
             @Arg(desc = "The number of iterations to perform", def = "4")
-                    int iterations,
+            int iterations,
             @Arg(desc = "The mask of blocks to use for the heightmap", def = "")
-                    Mask mask,
+            Mask mask,
             InjectedValueAccess context
     ) throws WorldEditException {
         worldEdit.checkMaxBrushRadius(radius);
@@ -1331,7 +1336,7 @@ public class BrushCommands {
         iterations = Math.min(limit.MAX_ITERATIONS, iterations);
         //FAWE end
 
-        set(context, new SmoothBrush(iterations, mask), "worldedit.brush.smooth").setSize(radius);
+        set(context, new SmoothBrush(iterations, mask, direction), "worldedit.brush.smooth").setSize(radius);
         player.print(Caption.of(
                 "worldedit.brush.smooth.equip",
                 radius,
